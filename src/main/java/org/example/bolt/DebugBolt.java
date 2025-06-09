@@ -7,6 +7,9 @@ import org.apache.storm.topology.base.BaseRichBolt;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.example.FileLogger;
+import org.example.data.WeatherDataOuterClass.WeatherData;
+
+import com.google.protobuf.InvalidProtocolBufferException;
 
 import java.util.Map;
 
@@ -20,7 +23,16 @@ public class DebugBolt extends BaseRichBolt {
 
     @Override
     public void execute(Tuple tuple) {
-        FileLogger.debug("Publication: " + tuple.getValueByField("publication"));
+        var input = (byte[]) tuple.getValueByField("publication");
+
+        try {
+            var data = WeatherData.parseFrom(input);
+
+            FileLogger.debug("Publication: " + data.toString());
+        } catch (InvalidProtocolBufferException e) {
+            FileLogger.error(e.toString());
+        }
+
         collector.emit(tuple.getValues()); // Re-emit as-is
         collector.ack(tuple); // Acknowledge
     }

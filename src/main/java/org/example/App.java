@@ -8,6 +8,7 @@ import org.apache.storm.topology.base.BaseWindowedBolt;
 import org.example.bolt.BrokerBolt;
 import org.example.bolt.ClientBolt;
 import org.example.bolt.DebugBolt;
+import org.example.data.WeatherDataOuterClass.WeatherData;
 import org.example.spout.PublisherSpout;
 
 import java.util.concurrent.TimeUnit;
@@ -32,14 +33,20 @@ public class App {
         Config config = new Config();
         config.setDebug(true);
 
+        config.registerSerialization(WeatherData.class);
+        config.put(Config.TOPOLOGY_EXECUTOR_RECEIVE_BUFFER_SIZE,1024);
+    	config.put(Config.TOPOLOGY_TRANSFER_BATCH_SIZE,1);
+
         LocalCluster cluster = new LocalCluster();
         StormTopology topology = builder.createTopology();
         cluster.submitTopology(TOPOLOGY_ID, config, topology);
+        
+        Thread.sleep(20000);
 
-        Thread.sleep(15000);
-
-        cluster.killTopology(TOPOLOGY_ID);
-        cluster.close();
+        cluster.killTopology(TOPOLOGY_ID);        
         cluster.shutdown();
+        cluster.close();
+
+        System.exit(0);
     }
 }
