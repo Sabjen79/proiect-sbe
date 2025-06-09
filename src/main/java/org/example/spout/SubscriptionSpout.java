@@ -1,3 +1,4 @@
+package org.example.spout;
 //package org.example;
 //
 //import org.apache.storm.spout.SpoutOutputCollector;
