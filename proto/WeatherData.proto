@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package org.example.data;
+
+message WeatherData {
+  string station_id = 1;
+  string city = 2;
+
+  enum WeatherDirection {
+    N = 0;
+    NE = 1;
+    E = 2;
+    SE = 3;
+    S = 4;
+    SW = 5;
+    W = 6;
+    NW = 7;
+  }
+  
+  WeatherDirection weather_direction = 3;
+  int32 temperature = 4;
+  double rainChance = 5;
+  int32 windSpeed = 6;
+  int64 date = 7;
+}
