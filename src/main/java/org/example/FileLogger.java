@@ -18,8 +18,6 @@ public class FileLogger {
     */
     public static int LOG_LEVEL = 0;
 
-    private static FileWriter fileWriter = null;
-
     public static void info(String log) {
         if(LOG_LEVEL < 1) return;
 
@@ -39,29 +37,27 @@ public class FileLogger {
     }
 
     private static void log(String log, String type) {
-        try {
-            if(fileWriter == null) {
+        new Thread(() -> {
+            try {
                 String filename = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-                fileWriter = new FileWriter("logs\\" + filename + ".log", true);
-            }
+                var fileWriter = new FileWriter("logs\\" + filename + ".log", true);
 
-            synchronized (fileWriter) {
-                fileWriter.write(
-                    MessageFormat.format("[{0}] [{1}.{2}] [{3}] {4}\n",
-                    LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss.SSS")),
-                    Thread.currentThread().getStackTrace()[3].getClassName(),
-                    Thread.currentThread().getStackTrace()[3].getMethodName(),
-                    type,
-                    log
-                ));
+                synchronized (fileWriter) {
+                    fileWriter.write(MessageFormat.format(
+                        "[{0}] [{1}] {2}\n",
+                        LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss.SSS")),
+                        type,
+                        log
+                    ));
 
-                fileWriter.flush();
+                    fileWriter.flush();
+                    fileWriter.close();
+                }
+                
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        
+        }).start();
     }
 }

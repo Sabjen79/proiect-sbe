@@ -1,4 +1,4 @@
-package org.example.spout;
+package org.example.topology.spout;
 
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -6,26 +6,38 @@ import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.topology.base.BaseRichSpout;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Values;
-import org.example.data.DataGenerator;
+import org.example.data.WeatherDataValues;
+import org.example.subscriber.SubscriberNodes;
 
 import java.util.*;
 
-public class PublisherSpout extends BaseRichSpout {
+public class SubscriberSpout extends BaseRichSpout {
     private SpoutOutputCollector collector;
+    private String subscriberName;
+
+    public SubscriberSpout(String subString) {
+        this.subscriberName = subString;
+    }
 
     @Override
     public void open(Map<String, Object> map, TopologyContext topologyContext, SpoutOutputCollector spoutOutputCollector) {
         this.collector = spoutOutputCollector;
-
-        DataGenerator.startGenerator();
     }
 
     @Override
     public void nextTuple() {
-        var weatherData = DataGenerator.pollData();
+        var data = SubscriberNodes.getSubscriber(subscriberName).pollData();
 
-        if(weatherData != null) {
-            collector.emit(new Values(weatherData.toByteArray()));
+        if(data != null) {
+            var city = "";
+
+            for (var condition : data.conditions) {
+                if (condition.key.equals(WeatherDataValues.fields[1])) {
+                    city = condition.value.toString();
+                }
+            }
+
+            collector.emit(new Values(data, city));
         }
 
         try {
@@ -37,6 +49,6 @@ public class PublisherSpout extends BaseRichSpout {
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        declarer.declare(new Fields("publication"));
+        declarer.declare(new Fields("subscription", "city"));
     }
 }

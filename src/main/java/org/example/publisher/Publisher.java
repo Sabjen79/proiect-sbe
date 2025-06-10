@@ -1,4 +1,4 @@
-package org.example.data;
+package org.example.publisher;
 
 import java.util.Date;
 import java.util.List;
@@ -12,12 +12,14 @@ import org.example.data.WeatherDataOuterClass.WeatherData;
 import org.example.data.WeatherDataOuterClass.WeatherData.WeatherDirection;
 import org.example.util.RandomUtil;
 
-public class DataGenerator {
+public class Publisher {
     private static final List<String> cities = List.of("Bucharest", "Cluj", "Iasi", "Timisoara");
-    private final static BlockingQueue<WeatherData> queue = new LinkedBlockingDeque<>();
     private final static Random rand = new Random();
+    private static BlockingQueue<byte[]> queue = new LinkedBlockingDeque<>();
 
-    public static void startGenerator() {
+    protected Publisher() {}
+
+    public void startGenerator() {
         var thread = new Thread(() -> {
             while (true) {
                 int count = rand.nextInt(4);
@@ -28,13 +30,13 @@ public class DataGenerator {
                         .setStationId(UUID.randomUUID().toString())
                         .setCity(RandomUtil.randomFrom(cities))
                         .setWeatherDirection(WeatherDirection.forNumber(rand.nextInt(8)))
-                        .setTemperature(rand.nextInt(-10, 40))
+                        .setTemperature(rand.nextInt(-10, 41))
                         .setRainChance(rand.nextDouble())
                         .setWindSpeed(rand.nextInt(21))
                         .setDate(new Date().getTime())
                         .build();
 
-                    queue.add(data);
+                    queue.add(data.toByteArray());
                 }
 
                 try {
@@ -50,7 +52,7 @@ public class DataGenerator {
         thread.start();
     }
 
-    public static WeatherData pollData() {
+    public byte[] pollData() {
         return queue.poll();
     }
 }
