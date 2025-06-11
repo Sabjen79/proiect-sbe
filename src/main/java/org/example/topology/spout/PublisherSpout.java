@@ -32,7 +32,7 @@ public class PublisherSpout extends BaseRichSpout {
     public void nextTuple() {
         var byteData = PublisherNodes.getPublisher(publisherName).pollData();
 
-        if(byteData != null) {
+        if (byteData != null) {
             WeatherData weatherData = null;
 
             try {
@@ -51,7 +51,8 @@ public class PublisherSpout extends BaseRichSpout {
             publication.put(WeatherDataValues.fields[5], String.valueOf(weatherData.getWeatherDirection()));
             publication.put(WeatherDataValues.fields[6], String.valueOf(weatherData.getDate()));
 
-            collector.emit(new Values(publication, weatherData.getCity()));
+            // Include hops field with default value 0
+            collector.emit(new Values(publication, weatherData.getCity(), 0));
         }
 
         try {
@@ -63,6 +64,7 @@ public class PublisherSpout extends BaseRichSpout {
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        declarer.declare(new Fields("publication", "city"));
+        // Include hops as part of the declared fields
+        declarer.declare(new Fields("publication", "city", "hops"));
     }
 }

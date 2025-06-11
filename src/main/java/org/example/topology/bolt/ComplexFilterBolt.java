@@ -12,6 +12,7 @@ import org.apache.storm.topology.base.BaseRichBolt;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
+import org.example.FileLogger;
 import org.example.data.WeatherDataValues;
 import org.example.subscriber.Operation;
 import org.example.subscriber.Subscription;
@@ -29,78 +30,83 @@ public class ComplexFilterBolt extends BaseRichBolt {
     @Override
     @SuppressWarnings("unchecked")
     public void execute(Tuple input) {
-        subscriptionsMap.putIfAbsent(input.getStringByField("city"), new ArrayList<>());
-        var subscriptions = subscriptionsMap.get(input.getStringByField("city"));
+        try {
+            String stream = input.getSourceStreamId();
+            String city = input.getStringByField("city");
+            subscriptionsMap.putIfAbsent(city, new ArrayList<>());
+            var subscriptions = subscriptionsMap.get(city);
 
-        if(input.contains("subscription")) {
-            var sub = (Subscription) input.getValueByField("subscription");
-            
-            subscriptions.add(sub);
-        }
+            FileLogger.debug("[ComplexFilterBolt] Received on stream: " + stream + " | city=" + city);
 
-        if(input.contains("publication-list")) {
-            var publicationList = (List<Map<String, String>>) input.getValueByField("publication-list");
+            if (input.contains("subscription")) {
+                var sub = (Subscription) input.getValueByField("subscription");
+                subscriptions.add(sub);
+                FileLogger.debug("Subscription added: " + sub + " | city=" + city);
+                return;
+            }
 
-            for(var sub : subscriptions) {
-                var isMatch = true;
+            if (input.contains("publication-list")) {
+                var publicationList = (List<Map<String, String>>) input.getValueByField("publication-list");
 
-                for(var condition : sub.conditions) {
-                    // Skip checking on city since it is handled by the topology
-                    if(condition.key.equals(WeatherDataValues.fields[1])) { 
-                        continue;
+                for (var sub : subscriptions) {
+                    boolean isMatch = true;
+
+                    for (var condition : sub.conditions) {
+                        if (condition.key.equals(WeatherDataValues.fields[1])) {
+                            continue; // skip 'city'
+                        }
+
+                        var splitKey = condition.key.split("_");
+                        if (splitKey.length < 2) continue;
+
+                        var agg = splitKey[0];
+                        var field = splitKey[1];
+
+                        double aggValue = 0;
+                        switch (agg) {
+                            case "min":
+                                aggValue = publicationList.stream()
+                                        .mapToDouble(p -> Double.parseDouble(p.get(field)))
+                                        .min().orElse(Double.NaN);
+                                break;
+                            case "max":
+                                aggValue = publicationList.stream()
+                                        .mapToDouble(p -> Double.parseDouble(p.get(field)))
+                                        .max().orElse(Double.NaN);
+                                break;
+                            case "avg":
+                                aggValue = publicationList.stream()
+                                        .mapToDouble(p -> Double.parseDouble(p.get(field)))
+                                        .average().orElse(Double.NaN);
+                                break;
+                            default:
+                                isMatch = false;
+                        }
+
+                        if (!Operation.compare(String.valueOf(aggValue), condition.operation, condition.value)) {
+                            isMatch = false;
+                            break;
+                        }
                     }
 
-                    var splitKey = condition.key.split("_");
-                    var key = splitKey[1];
-                    var publicationValue = "0.0";
-                    
-                    switch (splitKey[0]) {
-                        case "min":
-                            publicationValue = publicationList
-                                .stream()
-                                .map((item) -> Double.parseDouble(item.get(key)))
-                                .reduce((total, element) -> Math.min(total, element))
-                                .get()
-                                .toString();
-                            break;
-
-                        case "max":
-                            publicationValue = publicationList  
-                                .stream()
-                                .map((item) -> Double.parseDouble(item.get(key)))
-                                .reduce((total, element) -> Math.max(total, element))
-                                .get()
-                                .toString();
-                            break;
-
-                        case "avg":
-                            Double value = publicationList  
-                                .stream()
-                                .map((item) -> Double.parseDouble(item.get(key)))
-                                .reduce((total, element) -> total + element)
-                                .get() / publicationList.size();
-
-                            publicationValue = value.toString();
-                            break;
+                    if (isMatch) {
+                        var metaPub = "{city = " + city + ", conditions = true}";
+                        collector.emit(new Values(sub, metaPub));
+                        FileLogger.debug("Matched publication list to subscription: " + sub + " | metaPub=" + metaPub);
                     }
-                    
-                    if(!Operation.compare(publicationValue, condition.operation, condition.value)) {
-                        isMatch = false;
-                        break;
-                    }
-                }
-
-                if(isMatch) {
-                    var metaPub = "{city = " + input.getStringByField("city") + ", conditions = true}";
-                    collector.emit(new Values(sub, metaPub));
                 }
             }
+
+        } catch (Exception e) {
+            FileLogger.error("[ComplexFilterBolt] Exception caught in execute(): " + e.getMessage());
+            collector.reportError(e);
         }
     }
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
         declarer.declare(new Fields("subscription", "meta-publication"));
+        declarer.declareStream("forward-publication", new Fields("publication", "hops"));
     }
     
 }
