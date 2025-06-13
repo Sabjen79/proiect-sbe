@@ -14,7 +14,7 @@ public class SubscriberNodes {
     public static void initialize(int num) {
         subscribers = new HashMap<>();
 
-        for (int i = 1; i <= num; i++) {
+        for (int i = 0; i < num; i++) {
             subscribers.put("Subscriber" + i, new Subscriber());
         }
 
@@ -34,59 +34,61 @@ public class SubscriberNodes {
     }
 
     public static void notifySubscriberString(Subscription sub, String message) {
-        decryptSubscription(sub);
+        sub = decryptSubscription(sub);
 
         FileLogger.info(MessageFormat.format("User {0} with subscription {1} was notified with message: {2}", sub.userId, sub.toString(), message.toString()));
     }
 
-    public static void notifySubscriberPublication(Subscription sub, Map<String, String> publication) {
-        decryptSubscription(sub);
+    public static void notifySubscriberPublication(Subscription sub, Map<String, String> encryptedPublication) {
+        var publication = new HashMap<String, String>();
 
-        publication.replace("station_id", SimpleOPE.decryptString(publication.get("station_id")));
-        publication.replace("city", SimpleOPE.decryptString(publication.get("city")));
+        publication.put("station_id", SimpleOPE.decryptString(encryptedPublication.get("station_id")));
+        publication.put("city", SimpleOPE.decryptString(encryptedPublication.get("city")));
 
-        publication.replace("temp", SimpleOPE.decryptLong(
-            Long.parseLong(publication.get("temp"))
+        publication.put("temp", SimpleOPE.decryptLong(
+            Long.parseLong(encryptedPublication.get("temp"))
         ).toString());
 
-        publication.replace("wind", SimpleOPE.decryptLong(
-            Long.parseLong(publication.get("wind"))
+        publication.put("wind", SimpleOPE.decryptLong(
+            Long.parseLong(encryptedPublication.get("wind"))
         ).toString());
 
-        publication.replace("rain", SimpleOPE.decryptDouble(
-            Long.parseLong(publication.get("rain"))
+        publication.put("rain", SimpleOPE.decryptDouble(
+            Long.parseLong(encryptedPublication.get("rain"))
         ).toString());
 
-        publication.replace("date", SimpleOPE.decryptDouble(
-            Long.parseLong(publication.get("date"))
-        ).toString());
+        publication.put("date", encryptedPublication.get("date"));
 
-        var weatherDirection = SimpleOPE.decryptLong(Long.parseLong(publication.get("direction")));
+        var weatherDirection = SimpleOPE.decryptLong(Long.parseLong(encryptedPublication.get("direction")));
 
-        publication.replace("direction", WeatherDirection.forNumber(
+        publication.put("direction", WeatherDirection.forNumber(
             Math.toIntExact(weatherDirection)
         ).toString());
 
-        FileLogger.info(MessageFormat.format("User {0} with subscription {1} was notified with publication: {2}", sub.userId, sub.toString(), publication.toString()));
+        notifySubscriberString(sub, publication.toString());
     }
 
-    private static void decryptSubscription(Subscription sub) {
-        sub.conditions = sub.conditions.stream().map((c) -> {
+    private static Subscription decryptSubscription(Subscription sub) {
+        var conditions = sub.conditions.stream().map((c) -> {
+            var value = "";
+
             switch (c.type) {
                 case 0:
-                    c.value = SimpleOPE.decryptString(c.value);
+                    value = SimpleOPE.decryptString(c.value);
                     break;
             
                 case 1:
-                    c.value = SimpleOPE.decryptLong(Long.valueOf(c.value)).toString();
+                    value = SimpleOPE.decryptLong(Long.valueOf(c.value)).toString();
                     break;
 
                 case 2:
-                    c.value = SimpleOPE.decryptDouble(Long.valueOf(c.value)).toString();
+                    value = SimpleOPE.decryptDouble(Long.valueOf(c.value)).toString();
                     break;
             }
 
-            return c;
+            return new SubCondition(c.key, c.operation, value, c.type);
         }).toList();
+        
+        return new Subscription(sub.userId, conditions);
     }
 }

@@ -88,6 +88,12 @@ public class Subscriber {
             prefix = RandomUtil.randomFrom(WeatherDataValues.complexPrefixes);
         }
 
+        for(var cond : list) {
+            if(cond.key == prefix + WeatherDataValues.fields[index]) {
+                return; // Don't add existing conditions
+            }
+        }
+
         list.add(
             new SubCondition(
                 prefix + WeatherDataValues.fields[index],

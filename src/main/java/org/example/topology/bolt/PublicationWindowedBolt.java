@@ -8,11 +8,13 @@ import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Values;
 import org.apache.storm.windowing.TupleWindow;
-import org.example.data.WeatherDataValues;
 
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Bolt that groups publications in a TupleWindow, forwarding them in a single tuple
+ */
 public class PublicationWindowedBolt extends BaseWindowedBolt {
 
     private OutputCollector collector;
@@ -34,12 +36,12 @@ public class PublicationWindowedBolt extends BaseWindowedBolt {
             })
             .toList();
 
-        collector.emit(new Values(list, list.getFirst().get(WeatherDataValues.fields[1])));
+        collector.emit(new Values(list));
     }
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        declarer.declare(new Fields("publication-list", "city"));
+        declarer.declare(new Fields("publication-list"));
     }
 }
 

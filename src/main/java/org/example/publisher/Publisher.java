@@ -46,9 +46,7 @@ public class Publisher {
                         .setWindSpeed(
                             SimpleOPE.encryptLong(rand.nextInt(21))
                         )
-                        .setDate(
-                            SimpleOPE.encryptLong(new Date().getTime())
-                        )
+                        .setDate(new Date().getTime())
                         .build();
 
                     queue.add(data.toByteArray());

@@ -12,84 +12,69 @@ import org.apache.storm.topology.base.BaseRichBolt;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
-import org.example.FileLogger;
+import org.example.App;
 import org.example.data.WeatherDataValues;
 import org.example.subscriber.Operation;
 import org.example.subscriber.Subscription;
 
+/**
+ * Bolt that receives and stores subscriptions, that are then compared and matched against any publication that it receives. 
+ * Publications are always forwarded to the next bolt of this type, until all of them parsed it at least once.
+ * Subscriptions, if any of them matches a publication, the latter will be send to the corresponding subscriber as a notification.
+ * All complex subscriptions are passed to ComplexFilterBolts, while simple ones are stored locally.
+ */
 public class SimpleFilterBolt extends BaseRichBolt {
-    // map that stores subscriptions per city
     private ConcurrentHashMap<String, List<Subscription>> subscriptionsMap;
 
     private OutputCollector collector;
-    private String brokerId;
-
-    // maximum number of hops allowed for forwarding
-    private final int MAX_HOPS = 3;
 
     @Override
     public void prepare(Map<String, Object> topoConf, TopologyContext context, OutputCollector collector) {
         this.subscriptionsMap = new ConcurrentHashMap<>();
         this.collector = collector;
-        this.brokerId = (String) topoConf.getOrDefault("broker.id", "default-broker");
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public void execute(Tuple input) {
-        // retrieve hop count, defaulting to 0 if missing
-        int currentHops = input.contains("hops") ? input.getIntegerByField("hops") : 0;
-
-        // handle subscription messages
         if (input.contains("subscription")) {
             var sub = (Subscription) input.getValueByField("subscription");
             String city = input.getStringByField("city");
 
-            FileLogger.debug("Routing subscription: " + sub + " | hops=" + currentHops + " | on broker=" + brokerId);
-
-            // store the subscription locally
-            subscriptionsMap.putIfAbsent(city, new ArrayList<>());
-            var subscriptions = subscriptionsMap.get(city);
-            subscriptions.add(sub);
-
-            FileLogger.debug("Added subscription locally: " + sub + " | broker=" + brokerId);
-
-            // forward the subscription if hop count allows
-            if (currentHops < MAX_HOPS) {
-                FileLogger.debug("Forwarding subscription to next broker: " + sub + " | from broker=" + brokerId);
-                collector.emit("forward", new Values(sub, city, currentHops + 1));
+            for (var condition : sub.conditions) {
+                for (var prefix : WeatherDataValues.complexPrefixes) {
+                    if(condition.key.startsWith(prefix)) {
+                        collector.emit("forward-subscription", new Values(sub, city));
+                        return;
+                    }
+                }
             }
 
-            collector.emit("routing-info", new Values(brokerId, "subscription-added", sub.toString()));
+            // Only save simple subscriptions
+            subscriptionsMap.putIfAbsent(city, new ArrayList<>());
+            subscriptionsMap.get(city).add(sub);
         }
 
-        // handle publication messages
         if (input.contains("publication")) {
             var publication = (Map<String, String>) input.getValueByField("publication");
             String city = input.getStringByField("city");
 
-            FileLogger.debug("Received publication: " + publication + " | city=" + city + " | currentHops=" + currentHops + " | on broker=" + brokerId);
-
-            // retrieve local subscriptions for the city
             var subscriptions = subscriptionsMap.getOrDefault(city, List.of());
 
-            // check if publication matches any subscription
             for (var sub : subscriptions) {
                 if (matchesSubscription(sub, publication)) {
-                    collector.emit("notify", new Values(sub, publication, currentHops + 1));
-                    FileLogger.debug("Matched publication to subscription: " + sub + " | notifying");
+                    collector.emit("notify", new Values(publication, sub));
                 }
             }
 
-            // forward publication to the next broker if hop count allows
-            if (currentHops < MAX_HOPS) {
-                FileLogger.debug("Forwarding publication to next broker: " + publication + " | city=" + city + " | currentHops=" + currentHops + " | from broker=" + brokerId);
-                collector.emit("forward-publication", new Values(publication, city, currentHops + 1));
+            int hops = input.contains("hops") ? input.getIntegerByField("hops") : 0;
+
+            if(hops < App.BROKER_NUM) {
+                collector.emit("forward-publication", new Values(publication, city, hops + 1));
             }
         }
     }
 
-    // checks if a publication satisfies all conditions in a subscription
     private boolean matchesSubscription(Subscription sub, Map<String, String> publication) {
         for (var condition : sub.conditions) {
             // skip city field
@@ -97,7 +82,6 @@ public class SimpleFilterBolt extends BaseRichBolt {
                 continue;
             }
 
-            FileLogger.info(condition.key);
             if (!Operation.compare(publication.get(condition.key), condition.operation, condition.value.toString())) {
                 return false;
             }
@@ -107,9 +91,13 @@ public class SimpleFilterBolt extends BaseRichBolt {
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        declarer.declareStream("forward", new Fields("subscription", "city", "hops"));// stream for forwarding subscriptions to other brokers
-        declarer.declareStream("notify", new Fields("subscription", "publication", "hops"));// stream for notifying matched subscriptions
-        declarer.declareStream("forward-publication", new Fields("publication", "city", "hops"));// stream for forwarding publications to other brokers
-        declarer.declareStream("routing-info", new Fields("broker-id", "action", "details"));// stream for logging routing-related events
+        // Sends a publication to the next SimpleFilterBolt
+        declarer.declareStream("forward-publication", new Fields("publication", "city", "hops"));
+
+        // Sends a complex subscription to a ComplexFilterBolt
+        declarer.declareStream("forward-subscription", new Fields("subscription", "city"));
+
+        // Sends publication and subscription data to a ClientBolt for notifying
+        declarer.declareStream("notify", new Fields("publication", "subscription"));
     }
 }

@@ -10,6 +10,9 @@ import org.apache.storm.topology.base.BaseRichBolt;
 
 import java.util.Map;
 
+/**
+ * Bolt responsible for notifying - sending data - to the SubscriberNodes
+ */
 public class ClientBolt extends BaseRichBolt {
     @Override
     public void prepare(Map<String, Object> conf, TopologyContext context, OutputCollector collector) {

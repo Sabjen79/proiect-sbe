@@ -14,86 +14,50 @@ import org.example.topology.bolt.*;
 import org.example.topology.spout.PublisherSpout;
 import org.example.topology.spout.SubscriberSpout;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class App {
     private final static String TOPOLOGY_ID = "pubsub-topology";
+    public final static int BROKER_NUM = 3;
+    public final static int PARRARELISM = WeatherDataValues.cities.length;
+    public final static Fields CITY_FIELDS = new Fields("city");
 
     public static void main(String[] args) throws Exception {
         FileLogger.LOG_LEVEL = 2;
 
-        // define number of publishers and subscribers
-        var PUBLISHER_NUM = 3;
-        var SUBSCRIBER_NUM = 3;
+        PublisherNodes.initialize(BROKER_NUM);
+        SubscriberNodes.initialize(BROKER_NUM);
 
-        // initialize publishers and subscribers
-        PublisherNodes.initialize(PUBLISHER_NUM);
-        SubscriberNodes.initialize(SUBSCRIBER_NUM);
-
-        // initialize topology builder and simple filter bolt map
         TopologyBuilder builder = new TopologyBuilder();
-        Map<String, org.apache.storm.topology.BoltDeclarer> simpleFilterBolts = new HashMap<>();
 
-        // create windowed bolt for aggregated publication processing
-        var publicationWindowedBolt = builder.setBolt(
-                "PublicationWindowedBolt",
-                new PublicationWindowedBolt().withTumblingWindow(new BaseWindowedBolt.Count(10)),
-                WeatherDataValues.cities.length
+        var pubWinBolt = builder.setBolt(
+            "PublicationWindowedBolt",
+            new PublicationWindowedBolt().withTumblingWindow(new BaseWindowedBolt.Count(10)),
+            PARRARELISM
         );
 
-        // create spouts and bolts for each broker node
-        for (int i = 1; i <= PUBLISHER_NUM; i++) {
-            String publisherSpoutId = "PublisherSpout" + i;
-            String subscriberSpoutId = "SubscriberSpout" + i;
-            String simpleFilterBoltId = "SimpleFilterBolt" + i;
-            String complexFilterBoltId = "ComplexFilterBolt" + i;
+        for(int i = 0; i < BROKER_NUM; i++) {
+            builder.setSpout("PublisherSpout" + i, new PublisherSpout("Publisher" + i));
+            builder.setSpout("SubscriberSpout" + i, new SubscriberSpout("Subscriber" + i));
 
-            // add publisher and subscriber spouts
-            builder.setSpout(publisherSpoutId, new PublisherSpout("Publisher" + i));
-            builder.setSpout(subscriberSpoutId, new SubscriberSpout("Subscriber" + i));
+            pubWinBolt.fieldsGrouping("PublisherSpout" + i, CITY_FIELDS);
 
-            // set up simple filter bolt with input from publisher and subscriber
-            var simpleBolt = builder.setBolt(simpleFilterBoltId, new SimpleFilterBolt(), 1)
-                    .fieldsGrouping(publisherSpoutId, new Fields("city"))
-                    .fieldsGrouping(subscriberSpoutId, new Fields("city"));
+            builder.setBolt("SimpleFilterBolt" + i, new SimpleFilterBolt(), PARRARELISM)
+                .fieldsGrouping("PublisherSpout" + i, CITY_FIELDS)
+                .fieldsGrouping("SubscriberSpout" + i, CITY_FIELDS)
+                .fieldsGrouping("SimpleFilterBolt" + ((i + 1) % BROKER_NUM), "forward-publication", CITY_FIELDS);
 
-            // store bolt reference for later connection
-            simpleFilterBolts.put(simpleFilterBoltId, simpleBolt);
+            builder.setBolt("ComplexFilterBolt" + i, new ComplexFilterBolt(), PARRARELISM)
+                .fieldsGrouping("SimpleFilterBolt" + i, "forward-subscription", CITY_FIELDS)
+                .shuffleGrouping("PublicationWindowedBolt")
+                .shuffleGrouping("ComplexFilterBolt" + ((i + 1) % BROKER_NUM), "forward-publications");
 
-            // connect publisher to windowed publication bolt
-            publicationWindowedBolt.fieldsGrouping(publisherSpoutId, new Fields("city"));
-
-            // create complex filter bolt with input from simple filter and windowed publications
-            builder.setBolt(complexFilterBoltId, new ComplexFilterBolt(), WeatherDataValues.cities.length)
-                    .fieldsGrouping(simpleFilterBoltId, "forward", new Fields("city"))
-                    .fieldsGrouping("PublicationWindowedBolt", new Fields("city"));
-        }
-
-        // enable advanced publication routing between all simple filter bolts
-        for (int i = 1; i <= PUBLISHER_NUM; i++) {
-            for (int j = 1; j <= PUBLISHER_NUM; j++) {
-                if (i != j) {
-                    String targetBoltId = "SimpleFilterBolt" + i;
-                    String sourceBoltId = "SimpleFilterBolt" + j;
-                    simpleFilterBolts.get(targetBoltId)
-                            .shuffleGrouping(sourceBoltId, "forward-publication");
-                }
-            }
-        }
-
-        // create client bolt and wire up notify and complex filter output
-        var clientBolt = builder.setBolt("ClientBolt", new ClientBolt(), WeatherDataValues.cities.length);
-        for (int i = 1; i <= PUBLISHER_NUM; i++) {
-            clientBolt.shuffleGrouping("SimpleFilterBolt" + i, "notify");
-        }
-        for (int i = 1; i <= SUBSCRIBER_NUM; i++) {
-            clientBolt.shuffleGrouping("ComplexFilterBolt" + i);
+            builder.setBolt("ClientBolt" + i, new ClientBolt(), PARRARELISM)
+                .shuffleGrouping("SimpleFilterBolt" + i, "notify")
+                .shuffleGrouping("ComplexFilterBolt" + i, "notify");
         }
 
         // configure topology
         Config config = new Config();
-        config.setDebug(true);
+        config.setDebug(false);
         config.registerSerialization(WeatherData.class);
         config.put(Config.TOPOLOGY_EXECUTOR_RECEIVE_BUFFER_SIZE, 1024);
         config.put(Config.TOPOLOGY_TRANSFER_BATCH_SIZE, 1);
@@ -108,7 +72,6 @@ public class App {
 
         Thread.sleep(20000);
 
-        // shutdown everything
         cluster.killTopology(TOPOLOGY_ID);
         cluster.shutdown();
         cluster.close();

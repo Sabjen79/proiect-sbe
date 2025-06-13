@@ -11,7 +11,7 @@ public class PublisherNodes {
     public static void initialize(int num) {
         publishers = new HashMap<>();
 
-        for (int i = 1; i <= num; i++) {
+        for (int i = 0; i < num; i++) {
             publishers.put("Publisher" + i, new Publisher());
         }
 
