@@ -23,14 +23,14 @@ public class ClientBolt extends BaseRichBolt {
             var publication = (Map<String, String>) input.getValueByField("publication");
             var sub = (Subscription) input.getValueByField("subscription");
 
-            SubscriberNodes.notifySubscriber(sub, publication);
+            SubscriberNodes.notifySubscriberPublication(sub, publication);
         }
 
         if(input.contains("meta-publication")) {
-            var metaPublication = input.getValueByField("meta-publication");
+            var metaPublication = input.getValueByField("meta-publication").toString();
             var sub = (Subscription) input.getValueByField("subscription");
 
-            SubscriberNodes.notifySubscriber(sub, metaPublication);
+            SubscriberNodes.notifySubscriberString(sub, metaPublication);
         }
     }
 

@@ -83,7 +83,7 @@ public class ComplexFilterBolt extends BaseRichBolt {
                                 isMatch = false;
                         }
 
-                        if (!Operation.compare(String.valueOf(aggValue), condition.operation, condition.value)) {
+                        if (!Operation.compare(String.valueOf(aggValue), condition.operation, condition.value.toString())) {
                             isMatch = false;
                             break;
                         }

@@ -72,14 +72,12 @@ public class SimpleFilterBolt extends BaseRichBolt {
 
             // retrieve local subscriptions for the city
             var subscriptions = subscriptionsMap.getOrDefault(city, List.of());
-            boolean matched = false;
 
             // check if publication matches any subscription
             for (var sub : subscriptions) {
                 if (matchesSubscription(sub, publication)) {
                     collector.emit("notify", new Values(sub, publication, currentHops + 1));
                     FileLogger.debug("Matched publication to subscription: " + sub + " | notifying");
-                    matched = true;
                 }
             }
 
@@ -98,7 +96,9 @@ public class SimpleFilterBolt extends BaseRichBolt {
             if (condition.key.equals(WeatherDataValues.fields[1])) {
                 continue;
             }
-            if (!Operation.compare(publication.get(condition.key), condition.operation, condition.value)) {
+
+            FileLogger.info(condition.key);
+            if (!Operation.compare(publication.get(condition.key), condition.operation, condition.value.toString())) {
                 return false;
             }
         }

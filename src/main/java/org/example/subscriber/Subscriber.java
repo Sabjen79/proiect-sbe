@@ -8,6 +8,7 @@ import java.util.concurrent.LinkedBlockingDeque;
 
 import org.example.FileLogger;
 import org.example.data.WeatherDataValues;
+import org.example.data.encryption.SimpleOPE;
 import org.example.util.RandomUtil;
 
 public class Subscriber {
@@ -27,7 +28,8 @@ public class Subscriber {
                     conditions.add(new SubCondition(
                         WeatherDataValues.fields[1],
                         Operation.EQUAL,
-                        RandomUtil.randomFrom(WeatherDataValues.cities)
+                        SimpleOPE.encryptString(RandomUtil.randomFrom(WeatherDataValues.cities)),
+                        0
                     ));
 
                     boolean isComplex = (rand.nextDouble() < 0.25);
@@ -61,18 +63,22 @@ public class Subscriber {
     private void addRandomCondition(List<SubCondition> list, boolean isComplex) {
         var index = rand.nextInt(2, 5);
         Object value = 0;
+        int type = 0;
 
         switch (index) {
             case 2: // Temperature
-                value = rand.nextInt(5, 25);
+                value = SimpleOPE.encryptLong(rand.nextInt(5, 25));
+                type = 1;
                 break;
 
             case 3: // Rain Chance
-                value = 0.25 + rand.nextDouble() / 2.0;
+                value = SimpleOPE.encryptDouble(0.25 + rand.nextDouble() / 2.0);
+                type = 2;
                 break;
 
             case 4: // Wind Speed
-                value = rand.nextInt(5, 15);
+                value = SimpleOPE.encryptLong(rand.nextInt(5, 15));
+                type = 1;
                 break;
         }
 
@@ -86,7 +92,8 @@ public class Subscriber {
             new SubCondition(
                 prefix + WeatherDataValues.fields[index],
                 RandomUtil.randomFrom(Operation.valuesNoEqual()),
-                String.valueOf(value)
+                String.valueOf(value),
+                type
             )
         );
     }
