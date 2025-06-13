@@ -1,19 +1,19 @@
 package org.example.publisher;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 
 import org.example.FileLogger;
+import org.example.data.WeatherDataValues;
 import org.example.data.WeatherDataOuterClass.WeatherData;
 import org.example.data.WeatherDataOuterClass.WeatherData.WeatherDirection;
+import org.example.data.encryption.SimpleOPE;
 import org.example.util.RandomUtil;
 
 public class Publisher {
-    private static final List<String> cities = List.of("Bucharest", "Cluj", "Iasi", "Timisoara");
     private final static Random rand = new Random();
     private static BlockingQueue<byte[]> queue = new LinkedBlockingDeque<>();
 
@@ -21,18 +21,31 @@ public class Publisher {
 
     public void startGenerator() {
         var thread = new Thread(() -> {
+            
             while (true) {
                 int count = rand.nextInt(4);
-
+                
                 for(int i = 0; i < count; i++) {
                     var data = WeatherData
                         .newBuilder()
-                        .setStationId(UUID.randomUUID().toString())
-                        .setCity(RandomUtil.randomFrom(cities))
-                        .setWeatherDirection(WeatherDirection.forNumber(rand.nextInt(8)))
-                        .setTemperature(rand.nextInt(-10, 41))
-                        .setRainChance(rand.nextDouble())
-                        .setWindSpeed(rand.nextInt(21))
+                        .setStationId(
+                            SimpleOPE.encryptString(UUID.randomUUID().toString())
+                        )
+                        .setCity(
+                            SimpleOPE.encryptString(RandomUtil.randomFrom(WeatherDataValues.cities))
+                        )
+                        .setWeatherDirection(
+                            SimpleOPE.encryptLong(WeatherDirection.forNumber(rand.nextInt(8)).getNumber())
+                        )
+                        .setTemperature(
+                            SimpleOPE.encryptLong(rand.nextInt(-10, 41))
+                        )
+                        .setRainChance(
+                            SimpleOPE.encryptDouble(rand.nextDouble())
+                        )
+                        .setWindSpeed(
+                            SimpleOPE.encryptLong(rand.nextInt(21))
+                        )
                         .setDate(new Date().getTime())
                         .build();
 

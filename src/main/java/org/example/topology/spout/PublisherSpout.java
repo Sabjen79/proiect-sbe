@@ -19,6 +19,9 @@ public class PublisherSpout extends BaseRichSpout {
     private SpoutOutputCollector collector;
     private String publisherName;
 
+    /**
+     * Spout that receives publications from a specific Publisher from PublisherNodes.
+     */
     public PublisherSpout(String publString) {
         this.publisherName = publString;
     }
@@ -51,8 +54,7 @@ public class PublisherSpout extends BaseRichSpout {
             publication.put(WeatherDataValues.fields[5], String.valueOf(weatherData.getWeatherDirection()));
             publication.put(WeatherDataValues.fields[6], String.valueOf(weatherData.getDate()));
 
-            // Include hops field with default value 0
-            collector.emit(new Values(publication, weatherData.getCity(), 0));
+            collector.emit(new Values(publication, weatherData.getCity()));
         }
 
         try {
@@ -64,7 +66,6 @@ public class PublisherSpout extends BaseRichSpout {
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        // Include hops as part of the declared fields
-        declarer.declare(new Fields("publication", "city", "hops"));
+        declarer.declare(new Fields("publication", "city"));
     }
 }

@@ -55,33 +55,28 @@ public final class WeatherDataOuterClass {
         getCityBytes();
 
     /**
-     * <code>.org.example.data.WeatherData.WeatherDirection weather_direction = 3;</code>
-     * @return The enum numeric value on the wire for weatherDirection.
-     */
-    int getWeatherDirectionValue();
-    /**
-     * <code>.org.example.data.WeatherData.WeatherDirection weather_direction = 3;</code>
+     * <code>int64 weather_direction = 3;</code>
      * @return The weatherDirection.
      */
-    org.example.data.WeatherDataOuterClass.WeatherData.WeatherDirection getWeatherDirection();
+    long getWeatherDirection();
 
     /**
-     * <code>int32 temperature = 4;</code>
+     * <code>int64 temperature = 4;</code>
      * @return The temperature.
      */
-    int getTemperature();
+    long getTemperature();
 
     /**
-     * <code>double rainChance = 5;</code>
+     * <code>int64 rainChance = 5;</code>
      * @return The rainChance.
      */
-    double getRainChance();
+    long getRainChance();
 
     /**
-     * <code>int32 windSpeed = 6;</code>
+     * <code>int64 windSpeed = 6;</code>
      * @return The windSpeed.
      */
-    int getWindSpeed();
+    long getWindSpeed();
 
     /**
      * <code>int64 date = 7;</code>
@@ -113,7 +108,6 @@ public final class WeatherDataOuterClass {
     private WeatherData() {
       stationId_ = "";
       city_ = "";
-      weatherDirection_ = 0;
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -379,53 +373,46 @@ public final class WeatherDataOuterClass {
     }
 
     public static final int WEATHER_DIRECTION_FIELD_NUMBER = 3;
-    private int weatherDirection_ = 0;
+    private long weatherDirection_ = 0L;
     /**
-     * <code>.org.example.data.WeatherData.WeatherDirection weather_direction = 3;</code>
-     * @return The enum numeric value on the wire for weatherDirection.
-     */
-    @java.lang.Override public int getWeatherDirectionValue() {
-      return weatherDirection_;
-    }
-    /**
-     * <code>.org.example.data.WeatherData.WeatherDirection weather_direction = 3;</code>
+     * <code>int64 weather_direction = 3;</code>
      * @return The weatherDirection.
      */
-    @java.lang.Override public org.example.data.WeatherDataOuterClass.WeatherData.WeatherDirection getWeatherDirection() {
-      org.example.data.WeatherDataOuterClass.WeatherData.WeatherDirection result = org.example.data.WeatherDataOuterClass.WeatherData.WeatherDirection.forNumber(weatherDirection_);
-      return result == null ? org.example.data.WeatherDataOuterClass.WeatherData.WeatherDirection.UNRECOGNIZED : result;
+    @java.lang.Override
+    public long getWeatherDirection() {
+      return weatherDirection_;
     }
 
     public static final int TEMPERATURE_FIELD_NUMBER = 4;
-    private int temperature_ = 0;
+    private long temperature_ = 0L;
     /**
-     * <code>int32 temperature = 4;</code>
+     * <code>int64 temperature = 4;</code>
      * @return The temperature.
      */
     @java.lang.Override
-    public int getTemperature() {
+    public long getTemperature() {
       return temperature_;
     }
 
     public static final int RAINCHANCE_FIELD_NUMBER = 5;
-    private double rainChance_ = 0D;
+    private long rainChance_ = 0L;
     /**
-     * <code>double rainChance = 5;</code>
+     * <code>int64 rainChance = 5;</code>
      * @return The rainChance.
      */
     @java.lang.Override
-    public double getRainChance() {
+    public long getRainChance() {
       return rainChance_;
     }
 
     public static final int WINDSPEED_FIELD_NUMBER = 6;
-    private int windSpeed_ = 0;
+    private long windSpeed_ = 0L;
     /**
-     * <code>int32 windSpeed = 6;</code>
+     * <code>int64 windSpeed = 6;</code>
      * @return The windSpeed.
      */
     @java.lang.Override
-    public int getWindSpeed() {
+    public long getWindSpeed() {
       return windSpeed_;
     }
 
@@ -460,17 +447,17 @@ public final class WeatherDataOuterClass {
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(city_)) {
         com.google.protobuf.GeneratedMessage.writeString(output, 2, city_);
       }
-      if (weatherDirection_ != org.example.data.WeatherDataOuterClass.WeatherData.WeatherDirection.N.getNumber()) {
-        output.writeEnum(3, weatherDirection_);
+      if (weatherDirection_ != 0L) {
+        output.writeInt64(3, weatherDirection_);
       }
-      if (temperature_ != 0) {
-        output.writeInt32(4, temperature_);
+      if (temperature_ != 0L) {
+        output.writeInt64(4, temperature_);
       }
-      if (java.lang.Double.doubleToRawLongBits(rainChance_) != 0) {
-        output.writeDouble(5, rainChance_);
+      if (rainChance_ != 0L) {
+        output.writeInt64(5, rainChance_);
       }
-      if (windSpeed_ != 0) {
-        output.writeInt32(6, windSpeed_);
+      if (windSpeed_ != 0L) {
+        output.writeInt64(6, windSpeed_);
       }
       if (date_ != 0L) {
         output.writeInt64(7, date_);
@@ -490,21 +477,21 @@ public final class WeatherDataOuterClass {
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(city_)) {
         size += com.google.protobuf.GeneratedMessage.computeStringSize(2, city_);
       }
-      if (weatherDirection_ != org.example.data.WeatherDataOuterClass.WeatherData.WeatherDirection.N.getNumber()) {
+      if (weatherDirection_ != 0L) {
         size += com.google.protobuf.CodedOutputStream
-          .computeEnumSize(3, weatherDirection_);
+          .computeInt64Size(3, weatherDirection_);
       }
-      if (temperature_ != 0) {
+      if (temperature_ != 0L) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(4, temperature_);
+          .computeInt64Size(4, temperature_);
       }
-      if (java.lang.Double.doubleToRawLongBits(rainChance_) != 0) {
+      if (rainChance_ != 0L) {
         size += com.google.protobuf.CodedOutputStream
-          .computeDoubleSize(5, rainChance_);
+          .computeInt64Size(5, rainChance_);
       }
-      if (windSpeed_ != 0) {
+      if (windSpeed_ != 0L) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(6, windSpeed_);
+          .computeInt64Size(6, windSpeed_);
       }
       if (date_ != 0L) {
         size += com.google.protobuf.CodedOutputStream
@@ -529,12 +516,12 @@ public final class WeatherDataOuterClass {
           .equals(other.getStationId())) return false;
       if (!getCity()
           .equals(other.getCity())) return false;
-      if (weatherDirection_ != other.weatherDirection_) return false;
+      if (getWeatherDirection()
+          != other.getWeatherDirection()) return false;
       if (getTemperature()
           != other.getTemperature()) return false;
-      if (java.lang.Double.doubleToLongBits(getRainChance())
-          != java.lang.Double.doubleToLongBits(
-              other.getRainChance())) return false;
+      if (getRainChance()
+          != other.getRainChance()) return false;
       if (getWindSpeed()
           != other.getWindSpeed()) return false;
       if (getDate()
@@ -556,14 +543,17 @@ public final class WeatherDataOuterClass {
       hash = (37 * hash) + CITY_FIELD_NUMBER;
       hash = (53 * hash) + getCity().hashCode();
       hash = (37 * hash) + WEATHER_DIRECTION_FIELD_NUMBER;
-      hash = (53 * hash) + weatherDirection_;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getWeatherDirection());
       hash = (37 * hash) + TEMPERATURE_FIELD_NUMBER;
-      hash = (53 * hash) + getTemperature();
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getTemperature());
       hash = (37 * hash) + RAINCHANCE_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-          java.lang.Double.doubleToLongBits(getRainChance()));
+          getRainChance());
       hash = (37 * hash) + WINDSPEED_FIELD_NUMBER;
-      hash = (53 * hash) + getWindSpeed();
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getWindSpeed());
       hash = (37 * hash) + DATE_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
           getDate());
@@ -700,10 +690,10 @@ public final class WeatherDataOuterClass {
         bitField0_ = 0;
         stationId_ = "";
         city_ = "";
-        weatherDirection_ = 0;
-        temperature_ = 0;
-        rainChance_ = 0D;
-        windSpeed_ = 0;
+        weatherDirection_ = 0L;
+        temperature_ = 0L;
+        rainChance_ = 0L;
+        windSpeed_ = 0L;
         date_ = 0L;
         return this;
       }
@@ -783,16 +773,16 @@ public final class WeatherDataOuterClass {
           bitField0_ |= 0x00000002;
           onChanged();
         }
-        if (other.weatherDirection_ != 0) {
-          setWeatherDirectionValue(other.getWeatherDirectionValue());
+        if (other.getWeatherDirection() != 0L) {
+          setWeatherDirection(other.getWeatherDirection());
         }
-        if (other.getTemperature() != 0) {
+        if (other.getTemperature() != 0L) {
           setTemperature(other.getTemperature());
         }
-        if (java.lang.Double.doubleToRawLongBits(other.getRainChance()) != 0) {
+        if (other.getRainChance() != 0L) {
           setRainChance(other.getRainChance());
         }
-        if (other.getWindSpeed() != 0) {
+        if (other.getWindSpeed() != 0L) {
           setWindSpeed(other.getWindSpeed());
         }
         if (other.getDate() != 0L) {
@@ -835,22 +825,22 @@ public final class WeatherDataOuterClass {
                 break;
               } // case 18
               case 24: {
-                weatherDirection_ = input.readEnum();
+                weatherDirection_ = input.readInt64();
                 bitField0_ |= 0x00000004;
                 break;
               } // case 24
               case 32: {
-                temperature_ = input.readInt32();
+                temperature_ = input.readInt64();
                 bitField0_ |= 0x00000008;
                 break;
               } // case 32
-              case 41: {
-                rainChance_ = input.readDouble();
+              case 40: {
+                rainChance_ = input.readInt64();
                 bitField0_ |= 0x00000010;
                 break;
-              } // case 41
+              } // case 40
               case 48: {
-                windSpeed_ = input.readInt32();
+                windSpeed_ = input.readInt64();
                 bitField0_ |= 0x00000020;
                 break;
               } // case 48
@@ -1020,72 +1010,53 @@ public final class WeatherDataOuterClass {
         return this;
       }
 
-      private int weatherDirection_ = 0;
+      private long weatherDirection_ ;
       /**
-       * <code>.org.example.data.WeatherData.WeatherDirection weather_direction = 3;</code>
-       * @return The enum numeric value on the wire for weatherDirection.
+       * <code>int64 weather_direction = 3;</code>
+       * @return The weatherDirection.
        */
-      @java.lang.Override public int getWeatherDirectionValue() {
+      @java.lang.Override
+      public long getWeatherDirection() {
         return weatherDirection_;
       }
       /**
-       * <code>.org.example.data.WeatherData.WeatherDirection weather_direction = 3;</code>
-       * @param value The enum numeric value on the wire for weatherDirection to set.
+       * <code>int64 weather_direction = 3;</code>
+       * @param value The weatherDirection to set.
        * @return This builder for chaining.
        */
-      public Builder setWeatherDirectionValue(int value) {
+      public Builder setWeatherDirection(long value) {
+
         weatherDirection_ = value;
         bitField0_ |= 0x00000004;
         onChanged();
         return this;
       }
       /**
-       * <code>.org.example.data.WeatherData.WeatherDirection weather_direction = 3;</code>
-       * @return The weatherDirection.
-       */
-      @java.lang.Override
-      public org.example.data.WeatherDataOuterClass.WeatherData.WeatherDirection getWeatherDirection() {
-        org.example.data.WeatherDataOuterClass.WeatherData.WeatherDirection result = org.example.data.WeatherDataOuterClass.WeatherData.WeatherDirection.forNumber(weatherDirection_);
-        return result == null ? org.example.data.WeatherDataOuterClass.WeatherData.WeatherDirection.UNRECOGNIZED : result;
-      }
-      /**
-       * <code>.org.example.data.WeatherData.WeatherDirection weather_direction = 3;</code>
-       * @param value The weatherDirection to set.
-       * @return This builder for chaining.
-       */
-      public Builder setWeatherDirection(org.example.data.WeatherDataOuterClass.WeatherData.WeatherDirection value) {
-        if (value == null) { throw new NullPointerException(); }
-        bitField0_ |= 0x00000004;
-        weatherDirection_ = value.getNumber();
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>.org.example.data.WeatherData.WeatherDirection weather_direction = 3;</code>
+       * <code>int64 weather_direction = 3;</code>
        * @return This builder for chaining.
        */
       public Builder clearWeatherDirection() {
         bitField0_ = (bitField0_ & ~0x00000004);
-        weatherDirection_ = 0;
+        weatherDirection_ = 0L;
         onChanged();
         return this;
       }
 
-      private int temperature_ ;
+      private long temperature_ ;
       /**
-       * <code>int32 temperature = 4;</code>
+       * <code>int64 temperature = 4;</code>
        * @return The temperature.
        */
       @java.lang.Override
-      public int getTemperature() {
+      public long getTemperature() {
         return temperature_;
       }
       /**
-       * <code>int32 temperature = 4;</code>
+       * <code>int64 temperature = 4;</code>
        * @param value The temperature to set.
        * @return This builder for chaining.
        */
-      public Builder setTemperature(int value) {
+      public Builder setTemperature(long value) {
 
         temperature_ = value;
         bitField0_ |= 0x00000008;
@@ -1093,31 +1064,31 @@ public final class WeatherDataOuterClass {
         return this;
       }
       /**
-       * <code>int32 temperature = 4;</code>
+       * <code>int64 temperature = 4;</code>
        * @return This builder for chaining.
        */
       public Builder clearTemperature() {
         bitField0_ = (bitField0_ & ~0x00000008);
-        temperature_ = 0;
+        temperature_ = 0L;
         onChanged();
         return this;
       }
 
-      private double rainChance_ ;
+      private long rainChance_ ;
       /**
-       * <code>double rainChance = 5;</code>
+       * <code>int64 rainChance = 5;</code>
        * @return The rainChance.
        */
       @java.lang.Override
-      public double getRainChance() {
+      public long getRainChance() {
         return rainChance_;
       }
       /**
-       * <code>double rainChance = 5;</code>
+       * <code>int64 rainChance = 5;</code>
        * @param value The rainChance to set.
        * @return This builder for chaining.
        */
-      public Builder setRainChance(double value) {
+      public Builder setRainChance(long value) {
 
         rainChance_ = value;
         bitField0_ |= 0x00000010;
@@ -1125,31 +1096,31 @@ public final class WeatherDataOuterClass {
         return this;
       }
       /**
-       * <code>double rainChance = 5;</code>
+       * <code>int64 rainChance = 5;</code>
        * @return This builder for chaining.
        */
       public Builder clearRainChance() {
         bitField0_ = (bitField0_ & ~0x00000010);
-        rainChance_ = 0D;
+        rainChance_ = 0L;
         onChanged();
         return this;
       }
 
-      private int windSpeed_ ;
+      private long windSpeed_ ;
       /**
-       * <code>int32 windSpeed = 6;</code>
+       * <code>int64 windSpeed = 6;</code>
        * @return The windSpeed.
        */
       @java.lang.Override
-      public int getWindSpeed() {
+      public long getWindSpeed() {
         return windSpeed_;
       }
       /**
-       * <code>int32 windSpeed = 6;</code>
+       * <code>int64 windSpeed = 6;</code>
        * @param value The windSpeed to set.
        * @return This builder for chaining.
        */
-      public Builder setWindSpeed(int value) {
+      public Builder setWindSpeed(long value) {
 
         windSpeed_ = value;
         bitField0_ |= 0x00000020;
@@ -1157,12 +1128,12 @@ public final class WeatherDataOuterClass {
         return this;
       }
       /**
-       * <code>int32 windSpeed = 6;</code>
+       * <code>int64 windSpeed = 6;</code>
        * @return This builder for chaining.
        */
       public Builder clearWindSpeed() {
         bitField0_ = (bitField0_ & ~0x00000020);
-        windSpeed_ = 0;
+        windSpeed_ = 0L;
         onChanged();
         return this;
       }
@@ -1264,15 +1235,13 @@ public final class WeatherDataOuterClass {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\021WeatherData.proto\022\020org.example.data\"\224\002" +
+      "\n\021WeatherData.proto\022\020org.example.data\"\344\001" +
       "\n\013WeatherData\022\022\n\nstation_id\030\001 \001(\t\022\014\n\004cit" +
-      "y\030\002 \001(\t\022I\n\021weather_direction\030\003 \001(\0162..org" +
-      ".example.data.WeatherData.WeatherDirecti" +
-      "on\022\023\n\013temperature\030\004 \001(\005\022\022\n\nrainChance\030\005 " +
-      "\001(\001\022\021\n\twindSpeed\030\006 \001(\005\022\014\n\004date\030\007 \001(\003\"N\n\020" +
-      "WeatherDirection\022\005\n\001N\020\000\022\006\n\002NE\020\001\022\005\n\001E\020\002\022\006" +
-      "\n\002SE\020\003\022\005\n\001S\020\004\022\006\n\002SW\020\005\022\005\n\001W\020\006\022\006\n\002NW\020\007b\006pr" +
-      "oto3"
+      "y\030\002 \001(\t\022\031\n\021weather_direction\030\003 \001(\003\022\023\n\013te" +
+      "mperature\030\004 \001(\003\022\022\n\nrainChance\030\005 \001(\003\022\021\n\tw" +
+      "indSpeed\030\006 \001(\003\022\014\n\004date\030\007 \001(\003\"N\n\020WeatherD" +
+      "irection\022\005\n\001N\020\000\022\006\n\002NE\020\001\022\005\n\001E\020\002\022\006\n\002SE\020\003\022\005" +
+      "\n\001S\020\004\022\006\n\002SW\020\005\022\005\n\001W\020\006\022\006\n\002NW\020\007b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,

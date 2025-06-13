@@ -16,6 +16,9 @@ public class SubscriberSpout extends BaseRichSpout {
     private SpoutOutputCollector collector;
     private String subscriberName;
 
+    /**
+     * Spout that receives subscriptions from a specific Subscriber from SubscriberNodes.
+     */
     public SubscriberSpout(String subString) {
         this.subscriberName = subString;
     }

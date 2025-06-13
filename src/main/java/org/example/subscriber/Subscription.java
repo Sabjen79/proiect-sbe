@@ -5,7 +5,7 @@ import java.util.List;
 
 public class Subscription implements Serializable {
     public final String userId;
-    public final List<SubCondition> conditions;
+    public List<SubCondition> conditions;
 
     public Subscription(String userId, List<SubCondition> conditions) {
         this.userId = userId;

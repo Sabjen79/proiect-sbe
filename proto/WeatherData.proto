@@ -17,9 +17,9 @@ message WeatherData {
     NW = 7;
   }
   
-  WeatherDirection weather_direction = 3;
-  int32 temperature = 4;
-  double rainChance = 5;
-  int32 windSpeed = 6;
+  int64 weather_direction = 3;
+  int64 temperature = 4;
+  int64 rainChance = 5;
+  int64 windSpeed = 6;
   int64 date = 7;
 }
