@@ -34,38 +34,38 @@ public class SubscriberNodes {
     }
 
     public static void notifySubscriberString(Subscription sub, String message) {
-        // decryptSubscription(sub);
+        decryptSubscription(sub);
 
         FileLogger.info(MessageFormat.format("User {0} with subscription {1} was notified with message: {2}", sub.userId, sub.toString(), message.toString()));
     }
 
     public static void notifySubscriberPublication(Subscription sub, Map<String, String> publication) {
-        // decryptSubscription(sub);
+        decryptSubscription(sub);
 
-        // publication.replace("station_id", SimpleOPE.decryptString(publication.get("station_id")));
-        // publication.replace("city", SimpleOPE.decryptString(publication.get("city")));
+        publication.replace("station_id", SimpleOPE.decryptString(publication.get("station_id")));
+        publication.replace("city", SimpleOPE.decryptString(publication.get("city")));
 
-        // publication.replace("temp", SimpleOPE.decryptLong(
-        //     Long.parseLong(publication.get("temp"))
-        // ).toString());
+        publication.replace("temp", SimpleOPE.decryptLong(
+            Long.parseLong(publication.get("temp"))
+        ).toString());
 
-        // publication.replace("wind", SimpleOPE.decryptLong(
-        //     Long.parseLong(publication.get("wind"))
-        // ).toString());
+        publication.replace("wind", SimpleOPE.decryptLong(
+            Long.parseLong(publication.get("wind"))
+        ).toString());
 
-        // publication.replace("rain", SimpleOPE.decryptDouble(
-        //     Long.parseLong(publication.get("rain"))
-        // ).toString());
+        publication.replace("rain", SimpleOPE.decryptDouble(
+            Long.parseLong(publication.get("rain"))
+        ).toString());
 
-        // publication.replace("date", SimpleOPE.decryptDouble(
-        //     Long.parseLong(publication.get("date"))
-        // ).toString());
+        publication.replace("date", SimpleOPE.decryptDouble(
+            Long.parseLong(publication.get("date"))
+        ).toString());
 
-        // var weatherDirection = SimpleOPE.decryptLong(Long.parseLong(publication.get("direction")));
+        var weatherDirection = SimpleOPE.decryptLong(Long.parseLong(publication.get("direction")));
 
-        // publication.replace("direction", WeatherDirection.forNumber(
-        //     Math.toIntExact(weatherDirection)
-        // ).toString());
+        publication.replace("direction", WeatherDirection.forNumber(
+            Math.toIntExact(weatherDirection)
+        ).toString());
 
         FileLogger.info(MessageFormat.format("User {0} with subscription {1} was notified with publication: {2}", sub.userId, sub.toString(), publication.toString()));
     }
