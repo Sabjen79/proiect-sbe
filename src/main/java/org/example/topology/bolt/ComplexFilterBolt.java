@@ -47,6 +47,12 @@ public class ComplexFilterBolt extends BaseRichBolt {
             var publicationList = (List<Map<String, String>>) input.getValueByField("publication-list");
             String city = publicationList.getFirst().get(WeatherDataValues.fields[1]);
 
+            int hops = input.contains("hops") ? input.getIntegerByField("hops") : 0;
+
+            if(hops < App.BROKER_NUM) {
+                collector.emit("forward-publications", new Values(publicationList, hops + 1));
+            } else return;
+
             var subscriptions = subscriptionsMap.getOrDefault(city, List.of());
 
             for (var sub : subscriptions) {
@@ -56,11 +62,7 @@ public class ComplexFilterBolt extends BaseRichBolt {
                 }
             }
 
-            int hops = input.contains("hops") ? input.getIntegerByField("hops") : 0;
 
-            if(hops < App.BROKER_NUM) {
-                collector.emit("forward-publications", new Values(publicationList, hops + 1));
-            }
         }
     }
 
