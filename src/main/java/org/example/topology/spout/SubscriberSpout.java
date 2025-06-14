@@ -9,6 +9,7 @@ import org.apache.storm.tuple.Values;
 import org.example.FileLogger;
 import org.example.data.WeatherDataValues;
 import org.example.subscriber.SubscriberNodes;
+import org.example.util.TopologyStatus;
 
 import java.util.*;
 
@@ -30,6 +31,10 @@ public class SubscriberSpout extends BaseRichSpout {
 
     @Override
     public void nextTuple() {
+        if (!TopologyStatus.READY.get()) {
+            return;
+        }
+
         var data = SubscriberNodes.getSubscriber(subscriberName).pollData();
 
         if(data != null) {

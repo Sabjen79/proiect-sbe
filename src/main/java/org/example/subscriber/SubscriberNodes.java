@@ -16,6 +16,11 @@ public class SubscriberNodes {
 
         for (int i = 0; i < num; i++) {
             subscribers.put("Subscriber" + i, new Subscriber());
+
+            // Using MIXED_25_EQUAL as the default equality mode for subscribers
+            // This can be changed based on the requirements of the test
+//            Subscriber sub = new Subscriber(EqualityMode.MIXED_25_EQUAL);
+//            subscribers.put("Subscriber" + i, sub);
         }
 
         FileLogger.info("Initialized Subscriber Node");

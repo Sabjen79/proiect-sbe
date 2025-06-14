@@ -14,10 +14,19 @@ import org.example.publisher.PublisherNodes;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.example.util.TopologyStatus;
 
 public class PublisherSpout extends BaseRichSpout {
     private SpoutOutputCollector collector;
     private String publisherName;
+
+    private static AtomicInteger totalPublications = new AtomicInteger(0);
+
+    public static AtomicInteger getTotalPublications() {
+        return totalPublications;
+    }
 
     /**
      * Spout that receives publications from a specific Publisher from PublisherNodes.
@@ -33,6 +42,10 @@ public class PublisherSpout extends BaseRichSpout {
 
     @Override
     public void nextTuple() {
+        if (!TopologyStatus.READY.get()) {
+            return;
+        }
+
         var byteData = PublisherNodes.getPublisher(publisherName).pollData();
 
         if (byteData != null) {
@@ -55,6 +68,7 @@ public class PublisherSpout extends BaseRichSpout {
             publication.put(WeatherDataValues.fields[6], String.valueOf(weatherData.getDate()));
 
             collector.emit(new Values(publication, weatherData.getCity()));
+            totalPublications.incrementAndGet();
         }
 
         try {

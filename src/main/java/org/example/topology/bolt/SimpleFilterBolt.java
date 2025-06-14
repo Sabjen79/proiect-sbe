@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -13,6 +15,7 @@ import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.example.App;
+import org.example.FileLogger;
 import org.example.data.WeatherDataValues;
 import org.example.subscriber.Operation;
 import org.example.subscriber.Subscription;
@@ -28,6 +31,11 @@ public class SimpleFilterBolt extends BaseRichBolt {
 
     private OutputCollector collector;
 
+    private static final long TEST_DURATION_MS = 90_000; // 3 minutes
+    private static long testStartTime = -1;
+    private static AtomicInteger successfulDeliveries = new AtomicInteger(0);
+    private static AtomicBoolean logged = new AtomicBoolean(false);
+
     @Override
     public void prepare(Map<String, Object> topoConf, TopologyContext context, OutputCollector collector) {
         this.subscriptionsMap = new ConcurrentHashMap<>();
@@ -37,43 +45,68 @@ public class SimpleFilterBolt extends BaseRichBolt {
     @Override
     @SuppressWarnings("unchecked")
     public void execute(Tuple input) {
-        if (input.contains("subscription")) {
-            var sub = (Subscription) input.getValueByField("subscription");
-            String city = input.getStringByField("city");
+        if (testStartTime == -1) {
+            testStartTime = System.currentTimeMillis();
+        }
+        long now = System.currentTimeMillis();
 
-            for (var condition : sub.conditions) {
-                for (var prefix : WeatherDataValues.complexPrefixes) {
-                    if(condition.key.startsWith(prefix)) {
-                        collector.emit("forward-subscription", new Values(sub, city));
-                        return;
+        if (now - testStartTime < TEST_DURATION_MS) {
+
+
+            if (input.contains("subscription")) {
+
+                var sub = (Subscription) input.getValueByField("subscription");
+                String city = input.getStringByField("city");
+
+                boolean isComplex = false;
+                for (var condition : sub.conditions) {
+                    for (var prefix : WeatherDataValues.complexPrefixes) {
+                        if(condition.key.startsWith(prefix)) {
+//                            collector.emit("forward-subscription", new Values(sub, city));
+                            isComplex = true;
+                            break;
+                        }
+                    }
+                    if (isComplex) break;
+                }
+
+                if (isComplex) {
+                    collector.emit("forward-subscription", new Values(sub, city));
+                } else {
+                    subscriptionsMap.putIfAbsent(city, new ArrayList<>());
+                    subscriptionsMap.get(city).add(sub);
+                }
+                // Only save simple subscriptions
+//                subscriptionsMap.putIfAbsent(city, new ArrayList<>());
+//                subscriptionsMap.get(city).add(sub);
+            }
+
+            if (input.contains("publication")) {
+
+                var publication = (Map<String, String>) input.getValueByField("publication");
+                String city = input.getStringByField("city");
+
+                int hops = input.contains("hops") ? input.getIntegerByField("hops") : 0;
+
+                if (hops < App.BROKER_NUM) {
+                    collector.emit("forward-publication", new Values(publication, city, hops + 1));
+                } else return;
+
+                var subscriptions = subscriptionsMap.getOrDefault(city, List.of());
+
+                for (var sub : subscriptions) {
+                    if (matchesSubscription(sub, publication)) {
+                        collector.emit("notify", new Values(publication, sub));
+                        successfulDeliveries.incrementAndGet();
                     }
                 }
-            }
 
-            // Only save simple subscriptions
-            subscriptionsMap.putIfAbsent(city, new ArrayList<>());
-            subscriptionsMap.get(city).add(sub);
+            }
+            
         }
 
-        if (input.contains("publication")) {
-            var publication = (Map<String, String>) input.getValueByField("publication");
-            String city = input.getStringByField("city");
-
-            int hops = input.contains("hops") ? input.getIntegerByField("hops") : 0;
-
-            if(hops < App.BROKER_NUM) {
-                collector.emit("forward-publication", new Values(publication, city, hops + 1));
-            } else return;
-
-            var subscriptions = subscriptionsMap.getOrDefault(city, List.of());
-
-            for (var sub : subscriptions) {
-                if (matchesSubscription(sub, publication)) {
-                    collector.emit("notify", new Values(publication, sub));
-                }
-            }
-
-            
+        if (now - testStartTime >= TEST_DURATION_MS && logged.compareAndSet(false, true)) {
+            FileLogger.info("Total successful deliveries in 1.5 minutes: " + successfulDeliveries.get());
         }
     }
 

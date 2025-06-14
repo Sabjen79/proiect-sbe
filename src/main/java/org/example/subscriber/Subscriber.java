@@ -15,11 +15,19 @@ public class Subscriber {
     private final static Random rand = new Random();
     private static BlockingQueue<Subscription> queue = new LinkedBlockingDeque<>();
 
+    private static final int TOTAL_SUBSCRIPTIONS = 2500;
+
+    private EqualityMode equalityMode;
+
+    public Subscriber(EqualityMode mode) {
+        this.equalityMode = mode;
+    }
     protected Subscriber() {}
 
     public void startGenerator() {
         var thread = new Thread(() -> {
-            while (true) {
+//            while (true) {
+            for (int k = 0; k < TOTAL_SUBSCRIPTIONS; k++) {
                 int count = rand.nextInt(4);
 
                 for(int i = 0; i < count; i++) {
@@ -102,5 +110,33 @@ public class Subscriber {
                 type
             )
         );
+
+        // Uncomment the following lines if you want to add the condition with the chosen operation
+//      Operation op = chooseOperation();
+//        list.add(
+//            new SubCondition(
+//                prefix + WeatherDataValues.fields[index],
+//                op,
+//                String.valueOf(value),
+//                type
+//            )
+//        );
+    }
+
+    private Operation chooseOperation() {
+        if(equalityMode == EqualityMode.ONLY_EQUAL) {
+            return Operation.EQUAL;
+        } else if(equalityMode == EqualityMode.MIXED_25_EQUAL) {
+            double p = rand.nextDouble();
+            if(p < 0.25) {
+                return Operation.EQUAL;
+            } else {
+                // random din Operation.valuesNoEqual()
+                Operation[] noEqualOps = Operation.valuesNoEqual();
+                return noEqualOps[rand.nextInt(noEqualOps.length)];
+            }
+        }
+        // fallback
+        return Operation.EQUAL;
     }
 }
