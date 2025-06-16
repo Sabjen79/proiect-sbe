@@ -45,9 +45,6 @@ public class PublisherSpout extends BaseRichSpout {
                 FileLogger.error(e.toString());
             }
 
-            StatsTracker.latencyCount.incrementAndGet();
-            StatsTracker.latencyValue.addAndGet(System.currentTimeMillis() - weatherData.getDate());
-
             StatsTracker.publicationNum.incrementAndGet();
 
             Map<String, String> publication = new HashMap<>();
