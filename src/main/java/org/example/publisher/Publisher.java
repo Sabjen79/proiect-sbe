@@ -1,6 +1,5 @@
 package org.example.publisher;
 
-import java.util.Date;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
@@ -23,34 +22,30 @@ public class Publisher {
         var thread = new Thread(() -> {
             
             while (true) {
-                int count = rand.nextInt(4);
-                
-                for(int i = 0; i < count; i++) {
-                    var data = WeatherData
-                        .newBuilder()
-                        .setStationId(
-                            SimpleOPE.encryptString(UUID.randomUUID().toString())
-                        )
-                        .setCity(
-                            SimpleOPE.encryptString(RandomUtil.randomFrom(WeatherDataValues.cities))
-                        )
-                        .setWeatherDirection(
-                            SimpleOPE.encryptLong(WeatherDirection.forNumber(rand.nextInt(8)).getNumber())
-                        )
-                        .setTemperature(
-                            SimpleOPE.encryptLong(rand.nextInt(-10, 41))
-                        )
-                        .setRainChance(
-                            SimpleOPE.encryptDouble(rand.nextDouble())
-                        )
-                        .setWindSpeed(
-                            SimpleOPE.encryptLong(rand.nextInt(21))
-                        )
-                        .setDate(new Date().getTime())
-                        .build();
+                var data = WeatherData
+                    .newBuilder()
+                    .setStationId(
+                        SimpleOPE.encryptString(UUID.randomUUID().toString())
+                    )
+                    .setCity(
+                        SimpleOPE.encryptString(RandomUtil.randomFrom(WeatherDataValues.cities))
+                    )
+                    .setWeatherDirection(
+                        SimpleOPE.encryptLong(WeatherDirection.forNumber(rand.nextInt(8)).getNumber())
+                    )
+                    .setTemperature(
+                        SimpleOPE.encryptLong(rand.nextInt(-10, 41))
+                    )
+                    .setRainChance(
+                        SimpleOPE.encryptDouble(rand.nextDouble())
+                    )
+                    .setWindSpeed(
+                        SimpleOPE.encryptLong(rand.nextInt(21))
+                    )
+                    .setDate(System.currentTimeMillis())
+                    .build();
 
-                    queue.add(data.toByteArray());
-                }
+                queue.add(data.toByteArray());
 
                 try {
                     Thread.sleep(100);

@@ -16,11 +16,6 @@ public class SubscriberNodes {
 
         for (int i = 0; i < num; i++) {
             subscribers.put("Subscriber" + i, new Subscriber());
-
-            // Using MIXED_25_EQUAL as the default equality mode for subscribers
-            // This can be changed based on the requirements of the test
-//            Subscriber sub = new Subscriber(EqualityMode.MIXED_25_EQUAL);
-//            subscribers.put("Subscriber" + i, sub);
         }
 
         FileLogger.info("Initialized Subscriber Node");
@@ -41,34 +36,11 @@ public class SubscriberNodes {
     public static void notifySubscriberString(Subscription sub, String message) {
         sub = decryptSubscription(sub);
 
-        FileLogger.info(MessageFormat.format("User {0} with subscription {1} was notified with message: {2}", sub.userId, sub.toString(), message.toString()));
+        FileLogger.debug(MessageFormat.format("User {0} with subscription {1} was notified with message: {2}", sub.userId, sub.toString(), message.toString()));
     }
 
     public static void notifySubscriberPublication(Subscription sub, Map<String, String> encryptedPublication) {
-        var publication = new HashMap<String, String>();
-
-        publication.put("station_id", SimpleOPE.decryptString(encryptedPublication.get("station_id")));
-        publication.put("city", SimpleOPE.decryptString(encryptedPublication.get("city")));
-
-        publication.put("temp", SimpleOPE.decryptLong(
-            Long.parseLong(encryptedPublication.get("temp"))
-        ).toString());
-
-        publication.put("wind", SimpleOPE.decryptLong(
-            Long.parseLong(encryptedPublication.get("wind"))
-        ).toString());
-
-        publication.put("rain", SimpleOPE.decryptDouble(
-            Long.parseLong(encryptedPublication.get("rain"))
-        ).toString());
-
-        publication.put("date", encryptedPublication.get("date"));
-
-        var weatherDirection = SimpleOPE.decryptLong(Long.parseLong(encryptedPublication.get("direction")));
-
-        publication.put("direction", WeatherDirection.forNumber(
-            Math.toIntExact(weatherDirection)
-        ).toString());
+        var publication = decryptPublication(encryptedPublication);
 
         notifySubscriberString(sub, publication.toString());
     }
@@ -95,5 +67,34 @@ public class SubscriberNodes {
         }).toList();
         
         return new Subscription(sub.userId, conditions);
+    }
+
+    private static HashMap<String, String> decryptPublication(Map<String, String> encryptedPublication) {
+        var publication = new HashMap<String, String>();
+
+        publication.put("station_id", SimpleOPE.decryptString(encryptedPublication.get("station_id")));
+        publication.put("city", SimpleOPE.decryptString(encryptedPublication.get("city")));
+
+        publication.put("temp", SimpleOPE.decryptLong(
+            Long.parseLong(encryptedPublication.get("temp"))
+        ).toString());
+
+        publication.put("wind", SimpleOPE.decryptLong(
+            Long.parseLong(encryptedPublication.get("wind"))
+        ).toString());
+
+        publication.put("rain", SimpleOPE.decryptDouble(
+            Long.parseLong(encryptedPublication.get("rain"))
+        ).toString());
+
+        publication.put("date", encryptedPublication.get("date"));
+
+        var weatherDirection = SimpleOPE.decryptLong(Long.parseLong(encryptedPublication.get("direction")));
+
+        publication.put("direction", WeatherDirection.forNumber(
+            Math.toIntExact(weatherDirection)
+        ).toString());
+
+        return publication;
     }
 }

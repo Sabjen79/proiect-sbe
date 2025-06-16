@@ -11,10 +11,9 @@ import org.example.data.WeatherDataValues;
 import org.example.publisher.PublisherNodes;
 import org.example.subscriber.SubscriberNodes;
 import org.example.topology.bolt.*;
-import org.example.topology.spout.InitialSpout;
 import org.example.topology.spout.PublisherSpout;
 import org.example.topology.spout.SubscriberSpout;
-import org.example.util.LatencyTracker;
+import org.example.util.StatsTracker;
 import org.example.util.TopologyStatus;
 
 public class App {
@@ -24,7 +23,8 @@ public class App {
     public final static Fields CITY_FIELDS = new Fields("city");
 
     public static void main(String[] args) throws Exception {
-        FileLogger.LOG_LEVEL = 2;
+        FileLogger.LOG_LEVEL = 1;
+        FileLogger.info("Started App");
 
         PublisherNodes.initialize(BROKER_NUM);
         SubscriberNodes.initialize(BROKER_NUM);
@@ -58,17 +58,6 @@ public class App {
                 .shuffleGrouping("ComplexFilterBolt" + i, "notify");
         }
 
-        // Initial spout to start the topology
-        // This spout will emit the first set of data to kick off the processing
-        // it is not part of the broker nodes, but rather a starting point for the topology
-        // in order to simulate the initial data flow and not generate till the topology is ready
-        builder.setSpout("initialSpout", new InitialSpout(), 1);
-
-        builder.setBolt("readyBolt", new ReadyBolt(), 1)
-                .shuffleGrouping("initialSpout");
-
-
-        // configure topology
         Config config = new Config();
         config.setDebug(false);
         config.registerSerialization(WeatherData.class);
@@ -79,34 +68,25 @@ public class App {
         StormTopology topology = builder.createTopology();
         cluster.submitTopology(TOPOLOGY_ID, config, topology);
 
-        // wait for the topology to be ready
+        FileLogger.info("Created broker topology");
+
         while (!TopologyStatus.READY.get()) {
-            Thread.sleep(100);  // verifică la fiecare 100ms
+            Thread.sleep(100);
         }
 
-        FileLogger.info("Created broker topology");
+        FileLogger.info("Topology is active");
+
         PublisherNodes.startGenerating();
         SubscriberNodes.startGenerating();
 
-//        Thread.sleep(20000);
-        Thread.sleep(180_000); // 3 minutes
+        StatsTracker.startTrackingLatency();
 
-        FileLogger.info("Total publications generated: " + PublisherSpout.getTotalPublications());
+        Thread.sleep(181_000);
 
-        // Uncomment this block to log average publication latency every 1.5 minutes
-//        new Thread(() -> {
-//            while(true) {
-//                try {
-//                    Thread.sleep(90000);
-//                    double avgLatency = LatencyTracker.getAverageLatency();
-//                    FileLogger.info("Average publication latency in last 1.5 min: " + avgLatency + " ms");
-//                    LatencyTracker.reset();
-//                } catch (InterruptedException e) {
-//                    break;
-//                }
-//            }
-//        }).start();
-
+        FileLogger.info("Number of sent publications: " + StatsTracker.publicationNum.get());
+        FileLogger.info("Number of sent subscriptions: " + StatsTracker.subscriptionNum.get());
+        FileLogger.info("Matched publications: " + StatsTracker.matchedPubSet.size());
+        FileLogger.info("Matched publications: " + ((double) StatsTracker.matchedPubSet.size() / StatsTracker.publicationNum.get()) * 100 + "%");
 
         cluster.killTopology(TOPOLOGY_ID);
         cluster.shutdown();

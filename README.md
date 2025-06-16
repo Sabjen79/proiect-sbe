@@ -6,6 +6,14 @@
 
 ---
 
+|     | 25% Egalitate | 100% Egalitate
+| -------- | ------- | ------- |
+| Publicatii Generate  | 9964 | 9964 |
+| Subscriptii Generate | 7188 | 7188 |
+| Latenta Medie / Minut | 1:00 - 4.5 ms<br/>2:00 - 5.0 ms<br/>3:00 - 5.6 ms | 1:00 - 4.6 ms<br/>2:00 - 4.9 ms<br/>3:00 - 5.4 ms |
+| Procentaj Match | 99.83% | 57.80% |
+
+
 - [x] Generati un flux de publicatii care sa fie emis de un nod publisher. Publicatiile pot fi generate cu valori aleatoare pentru campuri folosind generatorul de date din tema practica. **<span style="color: blue;">(5 puncte)</span>**
 - [x] Implementati o retea (overlay) de brokeri (2-3) care sa notifice clienti (subscriberi) in functie de o filtrare bazata pe continutul publicatiilor, cu posibilitatea de a procesa inclusiv ferestre (secvente) de publicatii (exemplu mai jos). **<span style="color: blue;">(10 puncte)</span>**
 - [x] Simulati 3 noduri subscriber care se conecteaza la reteaua de brokeri si pot inregistra atat susbcriptii simple cat si subscriptii complexe ce necesita o filtrare pe fereastra de publicatii. Subscriptiile pot fi generate cu valori aleatoare pentru campuri folosind generatorul de date din tema practica, modificat pentru a genera si subscriptii pentru ferestre de publicatii (exemplu mai jos). **<span style="color: blue;">(5 puncte)</span>**

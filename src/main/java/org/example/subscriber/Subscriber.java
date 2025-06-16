@@ -17,47 +17,40 @@ public class Subscriber {
 
     private static final int TOTAL_SUBSCRIPTIONS = 2500;
 
-    private EqualityMode equalityMode;
-
-    public Subscriber(EqualityMode mode) {
-        this.equalityMode = mode;
-    }
     protected Subscriber() {}
 
     public void startGenerator() {
         var thread = new Thread(() -> {
-//            while (true) {
             for (int k = 0; k < TOTAL_SUBSCRIPTIONS; k++) {
-                int count = rand.nextInt(4);
-
-                for(int i = 0; i < count; i++) {
-                    List<SubCondition> conditions = new ArrayList<>();
+                List<SubCondition> conditions = new ArrayList<>();
                     
-                    conditions.add(new SubCondition(
-                        WeatherDataValues.fields[1],
-                        Operation.EQUAL,
-                        SimpleOPE.encryptString(RandomUtil.randomFrom(WeatherDataValues.cities)),
-                        0
-                    ));
+                conditions.add(new SubCondition(
+                    WeatherDataValues.fields[1],
+                    Operation.EQUAL,
+                    SimpleOPE.encryptString(RandomUtil.randomFrom(WeatherDataValues.cities)),
+                    0
+                ));
 
-                    boolean isComplex = (rand.nextDouble() < 0.25);
+                boolean isComplex = (rand.nextDouble() < 0);
 
-                    for(int j = 0; j < rand.nextInt(1, 3); j++) {
-                        addRandomCondition(conditions, isComplex);
-                    }
-                    
-                    Subscription sub = new Subscription(RandomUtil.randomString(8), conditions);
-
-                    queue.add(sub);
+                addCondition(conditions, isComplex, 2); // Add temp condition
+                for(int j = 0; j < rand.nextInt(0, 2); j++) {
+                    addRandomCondition(conditions, isComplex);
                 }
+                
+                Subscription sub = new Subscription(RandomUtil.randomString(8), conditions);
+
+                queue.add(sub);
 
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(180_000 / TOTAL_SUBSCRIPTIONS);
                 } catch (InterruptedException e) {
                     FileLogger.error(e.toString());
                     break;
                 }
             }
+
+            FileLogger.info("Subscriber Thread finished generating");
         });
 
         thread.setDaemon(true);
@@ -70,24 +63,35 @@ public class Subscriber {
 
     private void addRandomCondition(List<SubCondition> list, boolean isComplex) {
         var index = rand.nextInt(2, 5);
+        
+        addCondition(list, isComplex, index);
+    }
+
+    private void addCondition(List<SubCondition> list, boolean isComplex, int index) {
         Object value = 0;
         int type = 0;
+        Operation operation;
 
         switch (index) {
             case 2: // Temperature
-                value = SimpleOPE.encryptLong(rand.nextInt(5, 25));
+                value = SimpleOPE.encryptLong(rand.nextInt(0, 30));
+                operation = Operation.randomEqual(0.25);
                 type = 1;
                 break;
 
             case 3: // Rain Chance
                 value = SimpleOPE.encryptDouble(0.25 + rand.nextDouble() / 2.0);
+                operation = RandomUtil.randomFrom(Operation.values());
                 type = 2;
                 break;
 
             case 4: // Wind Speed
                 value = SimpleOPE.encryptLong(rand.nextInt(5, 15));
+                operation = RandomUtil.randomFrom(Operation.values());
                 type = 1;
                 break;
+            default:
+                return;
         }
 
         var prefix = "";
@@ -105,38 +109,10 @@ public class Subscriber {
         list.add(
             new SubCondition(
                 prefix + WeatherDataValues.fields[index],
-                RandomUtil.randomFrom(Operation.valuesNoEqual()),
+                operation,
                 String.valueOf(value),
                 type
             )
         );
-
-        // Uncomment the following lines if you want to add the condition with the chosen operation
-//      Operation op = chooseOperation();
-//        list.add(
-//            new SubCondition(
-//                prefix + WeatherDataValues.fields[index],
-//                op,
-//                String.valueOf(value),
-//                type
-//            )
-//        );
-    }
-
-    private Operation chooseOperation() {
-        if(equalityMode == EqualityMode.ONLY_EQUAL) {
-            return Operation.EQUAL;
-        } else if(equalityMode == EqualityMode.MIXED_25_EQUAL) {
-            double p = rand.nextDouble();
-            if(p < 0.25) {
-                return Operation.EQUAL;
-            } else {
-                // random din Operation.valuesNoEqual()
-                Operation[] noEqualOps = Operation.valuesNoEqual();
-                return noEqualOps[rand.nextInt(noEqualOps.length)];
-            }
-        }
-        // fallback
-        return Operation.EQUAL;
     }
 }

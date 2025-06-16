@@ -6,9 +6,9 @@ import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.topology.base.BaseRichSpout;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Values;
-import org.example.FileLogger;
 import org.example.data.WeatherDataValues;
 import org.example.subscriber.SubscriberNodes;
+import org.example.util.StatsTracker;
 import org.example.util.TopologyStatus;
 
 import java.util.*;
@@ -27,17 +27,17 @@ public class SubscriberSpout extends BaseRichSpout {
     @Override
     public void open(Map<String, Object> map, TopologyContext topologyContext, SpoutOutputCollector spoutOutputCollector) {
         this.collector = spoutOutputCollector;
+
+        TopologyStatus.READY.set(true);
     }
 
     @Override
     public void nextTuple() {
-        if (!TopologyStatus.READY.get()) {
-            return;
-        }
-
         var data = SubscriberNodes.getSubscriber(subscriberName).pollData();
 
         if(data != null) {
+            StatsTracker.subscriptionNum.incrementAndGet();
+
             var city = "";
 
             for (var condition : data.conditions) {
@@ -45,7 +45,7 @@ public class SubscriberSpout extends BaseRichSpout {
                     city = condition.value.toString();
                 }
             }
-            FileLogger.debug("Generated subscription: " + data.toString() + " for city: " + city);
+
             collector.emit(new Values(data, city));
         }
 

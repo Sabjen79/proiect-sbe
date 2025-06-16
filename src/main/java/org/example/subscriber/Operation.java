@@ -1,5 +1,9 @@
 package org.example.subscriber;
 
+import java.util.Random;
+
+import org.example.util.RandomUtil;
+
 public enum Operation {
     LOWER("<"),
     LOWER_EQUAL("<="),
@@ -15,6 +19,12 @@ public enum Operation {
 
     public static Operation[] valuesNoEqual() {
         return new Operation[]{ LOWER, LOWER_EQUAL, GREATER, GREATER_EQUAL };
+    }
+
+    public static Operation randomEqual(double chance) {
+        var isEqual = new Random().nextDouble() < chance;
+
+        return isEqual ? Operation.EQUAL : RandomUtil.randomFrom(valuesNoEqual());
     }
 
     public static boolean compare(String aObj, Operation operation, String bObj) {
