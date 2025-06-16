@@ -28,9 +28,6 @@ public class ClientBolt extends BaseRichBolt {
             var publication = (Map<String, String>) input.getValueByField("publication");
             var sub = (Subscription) input.getValueByField("subscription");
 
-            StatsTracker.latencyCount.incrementAndGet();
-            StatsTracker.latencyValue.addAndGet(System.currentTimeMillis() - Long.parseLong(publication.get("date")));
-
             StatsTracker.matchedPubSet.add(publication.get(WeatherDataValues.fields[0]));
 
             SubscriberNodes.notifySubscriberPublication(sub, publication);

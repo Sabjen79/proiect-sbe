@@ -8,8 +8,8 @@
 
 |     | 25% Egalitate | 100% Egalitate
 | -------- | ------- | ------- |
-| Publicatii Generate  | 9964 | 9964 |
-| Subscriptii Generate | 7188 | 7188 |
+| Publicatii Livrate  | 9964 | 9964 |
+| Subscriptii Livrate | 7188 | 7188 |
 | Latenta Medie / Minut | 1:00 - 4.5 ms<br/>2:00 - 5.0 ms<br/>3:00 - 5.6 ms | 1:00 - 4.6 ms<br/>2:00 - 4.9 ms<br/>3:00 - 5.4 ms |
 | Procentaj Match | 99.83% | 57.80% |
 
